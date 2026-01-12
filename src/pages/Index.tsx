@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
+import Map from '@/components/Map';
 
 type Place = {
   id: number;
@@ -284,26 +285,14 @@ export default function Index() {
       </div>
 
       <div className="flex-1 relative bg-muted">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center space-y-4 p-8">
-            <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
-              <Icon name="Map" size={48} className="text-primary" />
-            </div>
-            <h2 className="text-2xl font-semibold text-foreground">Интерактивная карта</h2>
-            <p className="text-muted-foreground max-w-md">
-              Здесь будет отображаться карта с маркерами мест из каталога.
-              Интеграция с 2ГИС и Яндекс.Карты позволит видеть актуальную информацию.
-            </p>
-            <div className="flex gap-2 flex-wrap justify-center pt-4">
-              {filteredPlaces.slice(0, 3).map(place => (
-                <Badge key={place.id} variant="outline" className="text-sm">
-                  <Icon name="MapPin" size={12} className="mr-1" />
-                  {place.name}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
+        <Map
+          places={filteredPlaces}
+          selectedPlaceId={selectedPlace?.id}
+          onPlaceClick={(id) => {
+            const place = mockPlaces.find(p => p.id === id);
+            if (place) setSelectedPlace(place);
+          }}
+        />
       </div>
 
       <Sheet open={!!selectedPlace} onOpenChange={() => setSelectedPlace(null)}>
