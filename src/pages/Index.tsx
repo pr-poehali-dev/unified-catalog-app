@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
-import Map from '@/components/Map';
+import YandexMap from '@/components/YandexMap';
 
 type Place = {
   id: number;
@@ -284,9 +284,16 @@ export default function Index() {
         </TabsContent>
       </div>
 
-      <div className="flex-1 relative bg-muted">
-        <Map
-          places={filteredPlaces}
+      <div className="flex-1 relative bg-muted p-4">
+        <YandexMap 
+          places={filteredPlaces.map(p => ({
+            id: p.id,
+            name: p.name,
+            lat: p.lat,
+            lng: p.lng,
+            category: p.category,
+            rating: p.rating
+          }))}
           selectedPlaceId={selectedPlace?.id}
           onPlaceClick={(id) => {
             const place = mockPlaces.find(p => p.id === id);
