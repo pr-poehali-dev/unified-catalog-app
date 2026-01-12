@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Slider } from '@/components/ui/slider';
 import Icon from '@/components/ui/icon';
 import YandexMap from '@/components/YandexMap';
+import ReviewsSection from '@/components/ReviewsSection';
 
 type Place = {
   id: number;
@@ -103,14 +105,17 @@ export default function Index() {
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [minRating, setMinRating] = useState(0);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState('catalog');
+  const [showReviews, setShowReviews] = useState(false);
 
   const filteredPlaces = mockPlaces.filter(place => {
     const matchesSearch = place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          place.address.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Все' || place.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesRating = place.rating >= minRating;
+    return matchesSearch && matchesCategory && matchesRating;
   });
 
   const toggleFavorite = (id: number) => {
@@ -167,6 +172,40 @@ export default function Index() {
                   </Badge>
                 ))}
               </div>
+
+              <Card className="bg-muted/50">
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Star" size={16} className="fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium">Минимальный рейтинг: {minRating.toFixed(1)}</span>
+                    </div>
+                    {minRating > 0 && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => setMinRating(0)}
+                        className="h-7 text-xs"
+                      >
+                        Сбросить
+                      </Button>
+                    )}
+                  </div>
+                  <Slider
+                    value={[minRating]}
+                    onValueChange={(value) => setMinRating(value[0])}
+                    min={0}
+                    max={5}
+                    step={0.5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>0.0</span>
+                    <span>2.5</span>
+                    <span>5.0</span>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="space-y-3 animate-fade-in">
                 {filteredPlaces.map(place => (
@@ -302,7 +341,7 @@ export default function Index() {
         />
       </div>
 
-      <Sheet open={!!selectedPlace} onOpenChange={() => setSelectedPlace(null)}>
+      <Sheet open={!!selectedPlace} onOpenChange={() => { setSelectedPlace(null); setShowReviews(false); }}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto animate-slide-in-right">
           {selectedPlace && (
             <>
@@ -331,27 +370,33 @@ export default function Index() {
                 </div>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
-                <div className="aspect-video bg-muted rounded-lg overflow-hidden">
-                  <img
-                    src={selectedPlace.image}
-                    alt={selectedPlace.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Icon name="Star" size={20} className="fill-yellow-400 text-yellow-400" />
-                    <span className="text-2xl font-bold">{selectedPlace.rating}</span>
+              {!showReviews ? (
+                <div className="mt-6 space-y-6">
+                  <div className="aspect-video bg-muted rounded-lg overflow-hidden">
+                    <img
+                      src={selectedPlace.image}
+                      alt={selectedPlace.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  <span className="text-muted-foreground">
-                    {selectedPlace.reviews} отзывов
-                  </span>
-                  <Button variant="link" size="sm" className="ml-auto">
-                    Все отзывы
-                  </Button>
-                </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Icon name="Star" size={20} className="fill-yellow-400 text-yellow-400" />
+                      <span className="text-2xl font-bold">{selectedPlace.rating}</span>
+                    </div>
+                    <span className="text-muted-foreground">
+                      {selectedPlace.reviews} отзывов
+                    </span>
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="ml-auto"
+                      onClick={() => setShowReviews(true)}
+                    >
+                      Все отзывы
+                    </Button>
+                  </div>
 
                 <div className="space-y-4">
                   <div>
@@ -390,17 +435,36 @@ export default function Index() {
                   </div>
                 </div>
 
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <Button className="w-full" size="lg">
-                    <Icon name="Phone" size={18} className="mr-2" />
-                    Позвонить
-                  </Button>
-                  <Button variant="outline" className="w-full" size="lg">
-                    <Icon name="Navigation" size={18} className="mr-2" />
-                    Построить маршрут
-                  </Button>
+                  <div className="space-y-3 pt-4 border-t border-border">
+                    <Button className="w-full" size="lg">
+                      <Icon name="Phone" size={18} className="mr-2" />
+                      Позвонить
+                    </Button>
+                    <Button variant="outline" className="w-full" size="lg">
+                      <Icon name="Navigation" size={18} className="mr-2" />
+                      Построить маршрут
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="mt-6">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowReviews(false)}
+                    className="mb-4"
+                  >
+                    <Icon name="ArrowLeft" size={18} className="mr-2" />
+                    Назад к информации
+                  </Button>
+                  <ReviewsSection
+                    placeId={selectedPlace.id}
+                    placeName={selectedPlace.name}
+                    overallRating={selectedPlace.rating}
+                    totalReviews={selectedPlace.reviews}
+                  />
+                </div>
+              )}
             </>
           )}
         </SheetContent>
